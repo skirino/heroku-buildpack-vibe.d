@@ -68,9 +68,17 @@ if [ ! -s $BUILD_DIR/package.json ]; then
   status=   1
 else
   cd $BUILD_DIR
+  if [ -f dub-prebuild ]; then
+    echo
+    echo "Running dub-prebuild..."
+    ./dub-prebuild
+  fi
+  
+  echo
+  echo "Running dub build..."
   if dub build; then
     echo
-    echo "!!! Build was successful"
+    echo "Build was successful"
     status=0
   else
     echo
