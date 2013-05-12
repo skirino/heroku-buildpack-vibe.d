@@ -43,7 +43,7 @@ echo "-----> Initializing toolchain"
 cd $TOOL_DIR
 
 # expand DMD
-7za e $ARCHIVE_DIR/$DMD_ARCHIVE.zip
+7za e -y $ARCHIVE_DIR/$DMD_ARCHIVE.zip
 
 # expand dub
 mkdir -p $TOOL_DIR/$DUB_ARCHIVE/bin
@@ -68,7 +68,7 @@ if [ ! -s $BUILD_DIR/package.json ]; then
 else
   cd $BUILD_DIR
   # FIXME fragile - fix by reading the package.json for app name
-  dub build -v | grep "Application output name is" | sed -e "s/.*?'(.*)'/\1/" > _appname
+  dub build -v | grep "Application output name is" | sed -e "s/.*'\(.*\)'/\1/" > _appname
 fi | indent
 
 # clean up any remaining sources
