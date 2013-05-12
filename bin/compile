@@ -56,7 +56,7 @@ tar xzf $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz
 
 echo
 echo "-----> Building app"
-export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/$DUB_ARCHIVE/bin:$TOOL_DIR/P7ZIP_ARCHIVE/bin
+export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/$DUB_ARCHIVE/bin:$TOOL_DIR/P7ZIP_ARCHIVE/bin:$PATH
 
 # link the dub cache to the cache folder
 mkdir -p $CACHE_DIR/.dub
