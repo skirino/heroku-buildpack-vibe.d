@@ -65,7 +65,7 @@ status=1
 if [ ! -s $BUILD_DIR/package.json ]; then
   echo
   echo "package.json was empty"
-  status=   1
+  status=1
 else
   cd $BUILD_DIR
   if [ -f dub-prebuild ]; then
