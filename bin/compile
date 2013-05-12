@@ -61,23 +61,26 @@ if [ ! -e $BUILD_DIR/.dub ]; then
 fi
 
 # if package.json has contents, run dub build
+status=1
 if [ ! -s $BUILD_DIR/package.json ]; then
   echo
   echo "package.json was empty"
-  exit 1
+  status=   1
 else
   cd $BUILD_DIR
-  # FIXME fragile - fix by reading the package.json for app name
   if dub build; then
     echo
     echo "!!! Build was successful"
+    status=0
   else
     echo
     echo "!!! Build failed"
-    exit 1
+    status=1
   fi
 fi | indent
 
 # clean up any remaining sources
 cd $BUILD_DIR
 rm -rf "$TOOL_DIR" source src views
+
+exit $status
