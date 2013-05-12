@@ -12,6 +12,8 @@ DMD_ARCHIVE_PATH=http://downloads.dlang.org.s3-website-us-east-1.amazonaws.com/r
 DMD_ARCHIVE=dmd.2.062
 DUB_ARCHIVE_PATH=http://registry.vibed.org/files
 DUB_ARCHIVE=dub-0.9.13-linux-x86_64
+P7ZIP_ARCHIVE_PATH=http://garr.dl.sourceforge.net/project/p7zip/p7zip/9.20.1
+P7ZIP_ARCHIVE=p7zip_9.20.1_x86_linux_bin
 
 indent() {
   sed -u 's/^/       /'
@@ -19,30 +21,42 @@ indent() {
 
 # download latest archives
 cd $ARCHIVE_DIR
+if [ ! -f $ARCHIVE_DIR/$P7ZIP_ARCHIVE.tar.bz2 ]; then
+    echo
+    echo "-----> Downloading p7zip"
+    rm -f p7zip*.tar.gz
+    curl $P7ZIP_ARCHIVE_PATH/$P7ZIP_ARCHIVE.tar.bz2 -o $P7ZIP_ARCHIVE.tar.bz2
+fi
 if [ ! -f $ARCHIVE_DIR/$DMD_ARCHIVE.zip ]; then
+    echo
     echo "-----> Downloading DMD"
-    rm dmd*.zip
-    curl $DMD_ARCHIVE_PATH/$DUB_ARCHIVE.zip -o $DUB_ARCHIVE.zip
+    rm -f dmd*.zip
+    curl $DMD_ARCHIVE_PATH/$DMD_ARCHIVE.zip -o $DMD_ARCHIVE.zip
 fi
 if [ ! -f $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz ]; then
+    echo
     echo "-----> Downloading dub package manager"
-    rm dub*.tar.gz
+    rm -f dub*.tar.gz
     curl $DUB_ARCHIVE_PATH/$DUB_ARCHIVE.tar.gz -o $DUB_ARCHIVE.tar.gz 
 fi
 
 # initialise toolchain
+echo
 echo "-----> Initializing toolchain"
 cd $TOOL_DIR
 
+# expand p7zip
+tar xjf $ARCHIVE_DIR/$P7ZIP_ARCHIVE.tar.bz2
+
 # expand DMD
-unzip $ARCHIVE_DIR/$DMD_ARCHIVE.zip
+7z e $ARCHIVE_DIR/$DMD_ARCHIVE.zip
 
 # expand dub
 tar xzf $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz
-ln -s $DUB_ARCHIVE dub
 
+echo
 echo "-----> Building app"
-export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/dub/bin
+export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/$DUB_ARCHIVE/bin:$TOOL_DIR/P7ZIP_ARCHIVE/bin
 
 # link the dub cache to the cache folder
 mkdir -p $CACHE_DIR/.dub
@@ -53,6 +67,7 @@ fi
 
 # if package.json has contents, run dub build
 if [ ! -s $BUILD_DIR/package.json ]; then
+  echo
   echo "package.json was empty"
   exit 1
 else
