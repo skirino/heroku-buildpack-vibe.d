@@ -19,12 +19,12 @@ indent() {
 
 # download latest archives
 cd $ARCHIVE_DIR
-if [ ! -f $ARCHIVE_DIR/$DMD_ARCHIVE.zip ]
+if [ ! -f $ARCHIVE_DIR/$DMD_ARCHIVE.zip ]; then
     echo "-----> Downloading DMD"
     rm dmd*.zip
     curl $DMD_ARCHIVE_PATH/$DUB_ARCHIVE.zip -o $DUB_ARCHIVE.zip
 fi
-if [ ! -f $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz ]
+if [ ! -f $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz ]; then
     echo "-----> Downloading dub package manager"
     rm dub*.tar.gz
     curl $DUB_ARCHIVE_PATH/$DUB_ARCHIVE.tar.gz -o $DUB_ARCHIVE.tar.gz 
@@ -47,7 +47,7 @@ export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/dub/bin
 # link the dub cache to the cache folder
 mkdir -p $CACHE_DIR/.dub
 
-if [ ! -e $BUILD_DIR/.dub ]
+if [ ! -e $BUILD_DIR/.dub ]; then
     ln -s $CACHE_DIR/.dub $BUILD_DIR/.dub
 fi
 
