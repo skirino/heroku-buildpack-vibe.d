@@ -67,6 +67,7 @@ if [ ! -s $BUILD_DIR/package.json ]; then
   echo "!!! package.json was empty" | indent
   status=1
 else
+  # pre-build hook
   cd $BUILD_DIR
   if [ -f dub-prebuild ]; then
     echo
@@ -76,7 +77,7 @@ else
   
   echo
   echo "Running dub build…" | indent
-  if dub build; then
+  if dub build --build=release; then
     echo
     echo "Build was successful" | indent
     status=0
@@ -87,8 +88,15 @@ else
   fi
 fi
 
-# clean up any remaining sources
+# post-build hook
 cd $BUILD_DIR
+if [ -f dub-postbuild ]; then
+    echo
+    echo "Running dub-postbuild…" | indent
+    ./dub-postbuild "$BUILD_DIR" "$CACHE_DIR" | indent
+fi
+
+# clean up any remaining sources
 rm -rf "$TOOL_DIR" source src views
 
 exit $status
