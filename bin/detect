@@ -2,7 +2,7 @@
 
 # this pack is valid for apps with a package.json in the root
 if [ -f $1/package.json ]; then
-  echo "D app using dub package manager found"
+  echo "D (dub package manager)"
   exit 0
 else
   exit 1

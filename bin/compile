@@ -4,14 +4,14 @@ mkdir -p "$1" "$2"
 BUILD_DIR=$(cd "$1/" && pwd)
 CACHE_DIR=$(cd "$2/" && pwd)
 
-TOOL_DIR = $TMP/toolchain
-ARCHIVE_DIR = $CACHE_DIR/archives
+TOOL_DIR=$TMP/toolchain
+ARCHIVE_DIR=$CACHE_DIR/archives
 mkdir -p "$TOOL_DIR" "$ARCHIVE_DIR"
 
-DMD_ARCHIVE_PATH = http://downloads.dlang.org.s3-website-us-east-1.amazonaws.com/releases/2013
-DMD_ARCHIVE = dmd.2.062
-DUB_ARCHIVE_PATH = http://registry.vibed.org/files
-DUB_ARCHIVE = dub-0.9.13-linux-x86_64
+DMD_ARCHIVE_PATH=http://downloads.dlang.org.s3-website-us-east-1.amazonaws.com/releases/2013
+DMD_ARCHIVE=dmd.2.062
+DUB_ARCHIVE_PATH=http://registry.vibed.org/files
+DUB_ARCHIVE=dub-0.9.13-linux-x86_64
 
 indent() {
   sed -u 's/^/       /'
