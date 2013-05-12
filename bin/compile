@@ -43,7 +43,7 @@ echo "-----> Initializing toolchain"
 cd $TOOL_DIR
 
 # expand DMD
-7za x $ARCHIVE_DIR/$DMD_ARCHIVE.zip | indent
+7za x $ARCHIVE_DIR/$DMD_ARCHIVE.zip > /dev/null
 
 # expand dub
 mkdir -p $TOOL_DIR/$DUB_ARCHIVE/bin
@@ -71,7 +71,7 @@ else
   if [ -f dub-prebuild ]; then
     echo
     echo "Running dub-prebuild..."
-    ./dub-prebuild
+    ./dub-prebuild "$BUILD_DIR" "$CACHE_DIR"
   fi
   
   echo
