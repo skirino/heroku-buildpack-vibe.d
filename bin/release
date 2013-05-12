@@ -1,0 +1,10 @@
+#!/bin/sh
+
+BUILD_DIR=$1
+
+cat << EOF
+---
+addons:
+default_process_types:
+  web: `cat _appname`
+EOF

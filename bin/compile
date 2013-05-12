@@ -1,0 +1,75 @@
+#!/bin/sh
+
+mkdir -p "$1" "$2"
+BUILD_DIR=$(cd "$1/" && pwd)
+CACHE_DIR=$(cd "$2/" && pwd)
+
+TOOL_DIR = $TMP/toolchain
+ARCHIVE_DIR = $CACHE_DIR/archives
+mkdir -p "$TOOL_DIR" "$ARCHIVE_DIR"
+
+DMD_ARCHIVE_PATH = http://downloads.dlang.org.s3-website-us-east-1.amazonaws.com/releases/2013
+DMD_ARCHIVE = dmd.2.062
+DUB_ARCHIVE_PATH = http://registry.vibed.org/files
+DUB_ARCHIVE = dub-0.9.13-linux-x86_64
+
+indent() {
+  sed -u 's/^/       /'
+}
+
+function message {
+  echo "$1"
+  sync
+}
+
+# download latest archives
+cd $ARCHIVE_DIR
+if [ ! -f $ARCHIVE_DIR/$DMD_ARCHIVE.zip ]
+    message "-----> Downloading DMD"
+    rm dmd*.zip
+    curl $DMD_ARCHIVE_PATH/$DUB_ARCHIVE.zip -o $DUB_ARCHIVE.zip
+fi
+if [ ! -f $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz ]
+    message "-----> Downloading dub package manager"
+    rm dub*.tar.gz
+    curl $DUB_ARCHIVE_PATH/$DUB_ARCHIVE.tar.gz -o $DUB_ARCHIVE.tar.gz 
+fi
+
+# initialise toolchain
+message "-----> Initializing toolchain"
+cd $TOOL_DIR
+rm -rf dmd2 dub dub-*
+
+# expand DMD
+unzip $ARCHIVE_DIR/$DMD_ARCHIVE.zip
+
+# expand dub
+tar xzf $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz
+ln -s $DUB_ARCHIVE dub
+
+echo "-----> Building app"
+export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/dub/bin
+
+# link the dub cache to the cache folder
+mkdir -p $CACHE_DIR/.dub
+
+if [ ! -e $BUILD_DIR/.dub ]
+    ln -s $CACHE_DIR/.dub $BUILD_DIR/.dub
+fi
+
+# if package.json has contents, display them (indented to align)
+# otherwise error
+
+if [ ! -s $BUILD_DIR/package.json ]; then
+  echo "package.json was empty"
+  exit 1
+else
+  cat $BUILD_DIR/package.json
+  cd $BUILD_DIR
+  # FIXME fragile - fix by reading the package.json for app name
+  dub build -v | grep "Application output name is" | sed -e "s/.*?'(.*)'/\1/" > _appname
+fi | indent
+
+# clean up any remaining sources
+cd $BUILD_DIR
+rm -rf source src views
