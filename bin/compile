@@ -1,5 +1,7 @@
 #!/bin/sh
 
+BUILDPACK_DIR=$(cd "$(dirname $0)" && pwd)
+
 mkdir -p "$1" "$2"
 BUILD_DIR=$(cd "$1/" && pwd)
 CACHE_DIR=$(cd "$2/" && pwd)
@@ -33,7 +35,7 @@ if [ ! -f $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz ]; then
 fi
 
 # initialise toolchain
-export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/$DUB_ARCHIVE/bin:$PATH
+export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/$DUB_ARCHIVE/bin:$BUILDPACK_DIR:$PATH
 echo
 echo "-----> Setting PATH: $PATH"
 echo
