@@ -12,8 +12,6 @@ DMD_ARCHIVE_PATH=http://downloads.dlang.org.s3-website-us-east-1.amazonaws.com/r
 DMD_ARCHIVE=dmd.2.062
 DUB_ARCHIVE_PATH=http://registry.vibed.org/files
 DUB_ARCHIVE=dub-0.9.13-linux-x86_64
-P7ZIP_ARCHIVE_PATH=http://garr.dl.sourceforge.net/project/p7zip/p7zip/9.20.1
-P7ZIP_ARCHIVE=p7zip_9.20.1_x86_linux_bin
 
 indent() {
   sed -u 's/^/       /'
@@ -21,12 +19,6 @@ indent() {
 
 # download latest archives
 cd $ARCHIVE_DIR
-if [ ! -f $ARCHIVE_DIR/$P7ZIP_ARCHIVE.tar.bz2 ]; then
-    echo
-    echo "-----> Downloading p7zip"
-    rm -f p7zip*.tar.gz
-    curl $P7ZIP_ARCHIVE_PATH/$P7ZIP_ARCHIVE.tar.bz2 -o $P7ZIP_ARCHIVE.tar.bz2
-fi
 if [ ! -f $ARCHIVE_DIR/$DMD_ARCHIVE.zip ]; then
     echo
     echo "-----> Downloading DMD"
@@ -41,18 +33,15 @@ if [ ! -f $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz ]; then
 fi
 
 # initialise toolchain
-export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/$DUB_ARCHIVE/bin:$TOOL_DIR/P7ZIP_ARCHIVE/bin:$PATH
+export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/$DUB_ARCHIVE/bin:$PATH
 echo
 echo "-----> Setting PATH: $PATH"
 echo
 echo "-----> Initializing toolchain"
 cd $TOOL_DIR
 
-# expand p7zip
-tar xjf $ARCHIVE_DIR/$P7ZIP_ARCHIVE.tar.bz2
-
 # expand DMD
-7z e $ARCHIVE_DIR/$DMD_ARCHIVE.zip
+7za e $ARCHIVE_DIR/$DMD_ARCHIVE.zip
 
 # expand dub
 mkdir -p $TOOL_DIR/$DUB_ARCHIVE/bin
