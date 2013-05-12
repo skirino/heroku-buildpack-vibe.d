@@ -41,6 +41,9 @@ if [ ! -f $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz ]; then
 fi
 
 # initialise toolchain
+export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/$DUB_ARCHIVE/bin:$TOOL_DIR/P7ZIP_ARCHIVE/bin:$PATH
+echo
+echo "-----> Setting PATH: $PATH"
 echo
 echo "-----> Initializing toolchain"
 cd $TOOL_DIR
@@ -52,11 +55,12 @@ tar xjf $ARCHIVE_DIR/$P7ZIP_ARCHIVE.tar.bz2
 7z e $ARCHIVE_DIR/$DMD_ARCHIVE.zip
 
 # expand dub
+mkdir -p $TOOL_DIR/$DUB_ARCHIVE/bin
+cd $TOOL_DIR/$DUB_ARCHIVE/bin
 tar xzf $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz
 
 echo
 echo "-----> Building app"
-export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/$DUB_ARCHIVE/bin:$TOOL_DIR/P7ZIP_ARCHIVE/bin:$PATH
 
 # link the dub cache to the cache folder
 mkdir -p $CACHE_DIR/.dub
