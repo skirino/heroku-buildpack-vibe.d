@@ -26,13 +26,13 @@ if [ ! -f $ARCHIVE_DIR/$DMD_ARCHIVE.zip ]; then
     echo "-----> Downloading DMD"
     rm -f dmd*.zip
     curl $DMD_ARCHIVE_PATH/$DMD_ARCHIVE.zip -o $DMD_ARCHIVE.zip
-fi
+fi | indent
 if [ ! -f $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz ]; then
     echo
     echo "-----> Downloading dub package manager"
     rm -f dub*.tar.gz
     curl $DUB_ARCHIVE_PATH/$DUB_ARCHIVE.tar.gz -o $DUB_ARCHIVE.tar.gz 
-fi
+fi | indent
 
 # initialise toolchain
 export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/$DUB_ARCHIVE/bin:$BUILDPACK_DIR:$PATH
@@ -43,7 +43,7 @@ echo "-----> Initializing toolchain"
 cd $TOOL_DIR
 
 # expand DMD
-7za e -y $ARCHIVE_DIR/$DMD_ARCHIVE.zip
+7za x $ARCHIVE_DIR/$DMD_ARCHIVE.zip | indent
 
 # expand dub
 mkdir -p $TOOL_DIR/$DUB_ARCHIVE/bin
@@ -68,7 +68,14 @@ if [ ! -s $BUILD_DIR/package.json ]; then
 else
   cd $BUILD_DIR
   # FIXME fragile - fix by reading the package.json for app name
-  dub build -v | grep "Application output name is" | sed -e "s/.*'\(.*\)'/\1/" > _appname
+  if dub build; then
+    echo
+    echo "!!! Build was successful"
+  else
+    echo
+    echo "!!! Build failed"
+    exit 1
+  fi
 fi | indent
 
 # clean up any remaining sources
