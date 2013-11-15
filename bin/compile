@@ -6,35 +6,97 @@ mkdir -p "$1" "$2"
 BUILD_DIR=$(cd "$1/" && pwd)
 CACHE_DIR=$(cd "$2/" && pwd)
 
+ARCHIVES=$CACHE_DIR/archives
+TOOLCHAIN=$BUILD_DIR/toolchain
+PREFIX=/app/opt
+CACHE_PREFIX=$CACHE_DIR/opt
+
+mkdir -p $ARCHIVES $TOOLCHAIN $CACHE_PREFIX
+if [ ! -e $PREFIX ]; then
+    ln -s $CACHE_PREFIX $PREFIX
+fi
+
 TOOL_DIR=$BUILD_DIR/toolchain
 ARCHIVE_DIR=$CACHE_DIR/archives
 mkdir -p "$TOOL_DIR" "$ARCHIVE_DIR"
 
-DMD_ARCHIVE_PATH=http://downloads.dlang.org.s3-website-us-east-1.amazonaws.com/releases/2013
-DMD_ARCHIVE=dmd.2.062
-DUB_ARCHIVE_PATH=http://registry.vibed.org/files
-DUB_ARCHIVE=dub-0.9.13-linux-x86_64
-
 indent() {
-  sed -u 's/^/       /'
+    sed -u 's/^/       /'
 }
 
-# download latest archives
+
+LIBEVENT_ARCHIVE_PATH=https://github.com/downloads/libevent/libevent
+LIBEVENT_ARCHIVE=libevent-2.0.21-stable
+LIBEVENT_DIR=$TOOLCHAIN/$LIBEVENT_ARCHIVE
+LIBEVENT_VERSION=libevent_pthreads-2.0.so.5.1.9
+
+if [ ! -f $PREFIX/lib/$LIBEVENT_VERSION ]; then
+    echo
+    echo "-----> Building libevent"
+    cd $ARCHIVES
+    if [ ! -f $LIBEVENT_ARCHIVE.tar.gz ]; then
+        rm -f libevent-*.tar.gz
+        curl -L --retry 3 "$LIBEVENT_ARCHIVE_PATH/$LIBEVENT_ARCHIVE.tar.gz" -o $LIBEVENT_ARCHIVE.tar.gz
+    fi
+
+    mkdir -p $LIBEVENT_DIR
+    cd $LIBEVENT_DIR/..
+    rm -rf $LIBEVENT_DIR
+    tar xzf $ARCHIVES/$LIBEVENT_ARCHIVE.tar.gz
+
+    cd $LIBEVENT_DIR
+    ./configure --prefix=$PREFIX
+    make all install
+fi
+
+
+LIBEV_ARCHIVE_PATH=http://dist.schmorp.de/libev
+LIBEV_ARCHIVE=libev-4.15
+LIBEV_DIR=$TOOLCHAIN/$LIBEV_ARCHIVE
+LIBEV_VERSION=libev.so.4.0.0
+
+if [ ! -f $PREFIX/lib/$LIBEV_VERSION ]; then
+    echo
+    echo "-----> Building libev"
+    cd $ARCHIVES
+    if [ ! -f $LIBEV_ARCHIVE.tar.gz ]; then
+        rm -f libev-*.tar.gz
+        curl -L --retry 3 "$LIBEV_ARCHIVE_PATH/$LIBEV_ARCHIVE.tar.gz" -o $LIBEV_ARCHIVE.tar.gz
+    fi
+
+    mkdir -p $LIBEV_DIR
+    cd $LIBEV_DIR/..
+    rm -rf $LIBEV_DIR
+    tar xzf $ARCHIVES/$LIBEV_ARCHIVE.tar.gz
+
+    cd $LIBEV_DIR
+    ./configure --prefix=$PREFIX
+    make all install
+fi
+
+cp -R $CACHE_PREFIX $BUILD_DIR/opt
+
+
+DMD_ARCHIVE_PATH=http://downloads.dlang.org/releases/2013
+DMD_ARCHIVE=dmd.2.064.2
+DUB_ARCHIVE_PATH=http://code.dlang.org/files
+DUB_ARCHIVE=dub-0.9.16-linux-x86_64
+
+# download and unpack binary releases
 cd $ARCHIVE_DIR
 if [ ! -f $ARCHIVE_DIR/$DMD_ARCHIVE.zip ]; then
     echo
     echo "-----> Downloading DMD"
     rm -f dmd*.zip
-    curl $DMD_ARCHIVE_PATH/$DMD_ARCHIVE.zip -o $DMD_ARCHIVE.zip
-fi | indent
+    curl $DMD_ARCHIVE_PATH/$DMD_ARCHIVE.zip -o $DMD_ARCHIVE.zip | indent
+fi
 if [ ! -f $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz ]; then
     echo
     echo "-----> Downloading dub package manager"
     rm -f dub*.tar.gz
-    curl $DUB_ARCHIVE_PATH/$DUB_ARCHIVE.tar.gz -o $DUB_ARCHIVE.tar.gz 
-fi | indent
+    curl $DUB_ARCHIVE_PATH/$DUB_ARCHIVE.tar.gz -o $DUB_ARCHIVE.tar.gz  | indent
+fi
 
-# initialise toolchain
 export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/$DUB_ARCHIVE/bin:$BUILDPACK_DIR:$PATH
 echo
 echo "-----> Setting PATH: $PATH"
@@ -42,13 +104,11 @@ echo
 echo "-----> Initializing toolchain"
 cd $TOOL_DIR
 
-# expand DMD
 7za x $ARCHIVE_DIR/$DMD_ARCHIVE.zip > /dev/null
-
-# expand dub
 mkdir -p $TOOL_DIR/$DUB_ARCHIVE/bin
 cd $TOOL_DIR/$DUB_ARCHIVE/bin
 tar xzf $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz
+
 
 echo
 echo "-----> Building app"
@@ -60,40 +120,25 @@ if [ ! -e $BUILD_DIR/.dub ]; then
     ln -s $CACHE_DIR/.dub $BUILD_DIR/.dub
 fi
 
-# if package.json has contents, run dub build
-status=1
+# check package.json
 if [ ! -s $BUILD_DIR/package.json ]; then
-  echo
-  echo "!!! package.json was empty" | indent
-  status=1
-else
-  # pre-build hook
-  cd $BUILD_DIR
-  if [ -f dub-prebuild ]; then
     echo
-    echo "Running dub-prebuild…" | indent
-    ./dub-prebuild "$BUILD_DIR" "$CACHE_DIR" | indent
-  fi
-  
-  echo
-  echo "Running dub build…" | indent
-  if dub build --build=release; then
+    echo "!!! package.json was empty" | indent
+    exit 1
+fi
+
+# run dub build
+cd $BUILD_DIR
+echo
+echo "Running dub build" | indent
+if dub build --build=release; then
     echo
     echo "Build was successful" | indent
     status=0
-  else
+else
     echo
     echo "!!! Build failed" | indent
     status=1
-  fi
-fi
-
-# post-build hook
-cd $BUILD_DIR
-if [ -f dub-postbuild ]; then
-    echo
-    echo "Running dub-postbuild…" | indent
-    ./dub-postbuild "$BUILD_DIR" "$CACHE_DIR" | indent
 fi
 
 # clean up any remaining sources
