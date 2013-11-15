@@ -1,0 +1,7 @@
+﻿{
+  "name": "vibed-heroku-example",
+  "dependencies": {
+    "vibe-d": ">=0.7.17"
+  },
+  "lflags": ["-L/app/opt/lib"]
+}

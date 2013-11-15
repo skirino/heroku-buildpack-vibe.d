@@ -1,0 +1,1 @@
+web: LD_LIBRARY_PATH=/app/opt/lib ./vibed-heroku-example

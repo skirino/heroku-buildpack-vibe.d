@@ -1,0 +1,6 @@
+!!! 5
+html
+  head
+    title vibe.d heroku buildpack example
+  body
+    h1 vibe.d running on Heroku!
