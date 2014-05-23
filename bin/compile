@@ -78,7 +78,7 @@ cp -R $CACHE_PREFIX $BUILD_DIR/opt
 
 
 DMD_ARCHIVE_PATH=http://downloads.dlang.org/releases/2013
-DMD_ARCHIVE=dmd.2.064.2
+DMD_ARCHIVE=dmd.2.065
 DUB_ARCHIVE_PATH=http://code.dlang.org/files
 DUB_ARCHIVE=dub-0.9.21-linux-x86_64
 
@@ -120,10 +120,10 @@ if [ ! -e $BUILD_DIR/.dub ]; then
     ln -s $CACHE_DIR/.dub $BUILD_DIR/.dub
 fi
 
-# check package.json
-if [ ! -s $BUILD_DIR/package.json ]; then
+# check dub.json
+if [ ! -s $BUILD_DIR/dub.json ]; then
     echo
-    echo "!!! package.json was empty" | indent
+    echo "!!! dub.json was empty" | indent
     exit 1
 fi
 
