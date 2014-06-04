@@ -103,9 +103,13 @@ $ curl http://peaceful-shore-2762.herokuapp.com/
 
 # Required settings of vibe.d project
 
-- Add the following to `package.json` in order to specify path to manually-installed libraries:
+- Add the following to `dub.json` in order to specify path to manually-installed libraries:
   - `"lflags": ["-L/app/opt/lib"]`
 - Create `Procfile` whose content looks something like the following:
   - `web: LD_LIBRARY_PATH=/app/opt/lib ./vibed-heroku-example`
 - Modify to listen to port given by Heroku as environment variable:
   - `settings.port = environment.get("PORT", "8080").to!ushort;`
+
+# Acknowledgment
+
+- @dkhasel fixed a problem due to outdated dub version. Thanks!

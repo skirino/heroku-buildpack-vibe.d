@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# this pack is valid for apps with a package.json in the root
+# this pack is valid for apps with a dub.json in the root
 if [ -f $1/dub.json ]; then
   echo "D (dub package manager)"
   exit 0
