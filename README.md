@@ -1,7 +1,5 @@
 # Heroku buildpack for [vibe.d](http://vibed.org/)
 
-Based mostly on https://bitbucket.org/mikehouston/heroku-buildpack-d/.
-
 # Note on heroku stacks
 
 - [`master`](https://github.com/skirino/heroku-buildpack-vibe.d/tree/master) and [`cedar-14`](https://github.com/skirino/heroku-buildpack-vibe.d/tree/cedar-14) branches target classical cedar stack and newer cedar-14 stack, respectively.
@@ -22,7 +20,7 @@ $ git commit -m "Initial commit"
 ...
 
 # Create a new heroku app
-$ heroku apps:create -s cedar --buildpack 'https://github.com/skirino/heroku-buildpack-vibe.d.git#master'
+$ heroku apps:create -s cedar-14 --buildpack 'https://github.com/skirino/heroku-buildpack-vibe.d.git#cedar-14'
 Creating peaceful-shore-2762... done, region is us
 BUILDPACK_URL=https://github.com/skirino/heroku-buildpack-vibe.d.git
 http://peaceful-shore-2762.herokuapp.com/ | git@heroku.com:peaceful-shore-2762.git
@@ -109,13 +107,14 @@ $ curl http://peaceful-shore-2762.herokuapp.com/
 
 # Required settings of vibe.d project
 
-- Add the following to `dub.json` in order to specify path to manually-installed libraries:
-  - `"lflags": ["-L/app/opt/lib"]`
 - Create `Procfile` whose content looks something like the following:
-  - `web: LD_LIBRARY_PATH=/app/opt/lib ./vibed-heroku-example`
-- Modify to listen to port given by Heroku as environment variable:
+  - `web: ./vibed-heroku-example`
+- Listen to the port given by Heroku as an environment variable:
   - `settings.port = environment.get("PORT", "8080").to!ushort;`
+- Create `vibed_buildpack.confg` file to specify dmd and dub versions.
+  - If not given, defaults to [config file inside the buildpack](https://github.com/skirino/heroku-buildpack-vibe.d/blob/cedar-14/vibed_buildpack.config).
 
 # Acknowledgment
 
-- @dkhasel fixed a problem due to outdated dub version. Thanks!
+- Based on https://bitbucket.org/mikehouston/heroku-buildpack-d/.
+- @dkhasel fixed a problem due to outdated dub version.

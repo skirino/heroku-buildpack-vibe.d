@@ -1,147 +1,81 @@
-#!/bin/sh
+#!/usr/bin/env ruby
 
-BUILDPACK_DIR=$(cd "$(dirname $0)" && pwd)
+require 'fileutils'
+$stdout.sync = true
 
-mkdir -p "$1" "$2"
-BUILD_DIR=$(cd "$1/" && pwd)
-CACHE_DIR=$(cd "$2/" && pwd)
+#
+# Setting up directories
+#
+BUILDPACK_DIR = File.absolute_path(File.dirname($0) + '/..')
+BUILD_DIR, CACHE_DIR = ARGV.map { |p| File.absolute_path(p) }
+FileUtils.mkdir_p([BUILD_DIR, CACHE_DIR, "#{CACHE_DIR}/.dub"])
+if !File.exist?("#{BUILD_DIR}/.dub")
+  FileUtils.ln_s("#{CACHE_DIR}/.dub", "#{BUILD_DIR}/.dub")
+end
 
-ARCHIVES=$CACHE_DIR/archives
-TOOLCHAIN=$BUILD_DIR/toolchain
-PREFIX=/app/opt
-CACHE_PREFIX=$CACHE_DIR/opt
+#
+# Utility methods
+#
+def puts_caption(s)
+  puts "\n-----> #{s}"
+end
+def puts_indent(s)
+  puts "       #{s}"
+end
 
-mkdir -p $ARCHIVES $TOOLCHAIN $CACHE_PREFIX
-if [ ! -e $PREFIX ]; then
-    ln -s $CACHE_PREFIX $PREFIX
-fi
+def read_config_file(dir)
+  content = File.read("#{dir}/vibed_buildpack.config") rescue ''
+  kvs = content.split("\n").map { |line| line.split('=').map(&:strip) }.select { |pair| pair.size == 2 }
+  Hash[kvs]
+end
 
-TOOL_DIR=$BUILD_DIR/toolchain
-ARCHIVE_DIR=$CACHE_DIR/archives
-mkdir -p "$TOOL_DIR" "$ARCHIVE_DIR"
+def ensure_archive(url)
+  basename = File.basename(url)
+  tool_name = basename[0..2]
+  path = "#{CACHE_DIR}/#{basename}"
+  if !File.exist?(path)
+    FileUtils.rm_f(Dir["#{tool_name}*"])
+    puts_caption "Downloading #{tool_name} from #{url}..."
+    puts_indent `curl -L "#{url}" -o #{path}`
+    fail "Failed to retrieve an archive from #{url}!" unless $?.success?
+  end
+  path
+end
 
-indent() {
-    sed -u 's/^/       /'
-}
+def extract_archive(path)
+  puts_caption "Extracting #{path}..."
+  if path.end_with?('.zip')
+    puts_indent `unzip -o -d #{CACHE_DIR} #{path}`
+  elsif path.end_with?('.tar.gz') || path.end_with?('.tgz')
+    puts_indent `tar -xzf #{path} --directory=#{CACHE_DIR}`
+  else
+    fail 'Unexpected archive format!'
+  end
+  fail "Failed to extract archive #{path}!" unless $?.success?
+end
 
+#
+# Start
+#
+CONFIG_DICT = read_config_file(BUILDPACK_DIR).merge read_config_file(BUILD_DIR)
+puts_caption 'Config:'
+CONFIG_DICT.each { |k, v| puts_indent "#{k}=#{v}" }
 
-LIBEVENT_ARCHIVE_PATH=https://github.com/downloads/libevent/libevent
-LIBEVENT_ARCHIVE=libevent-2.0.21-stable
-LIBEVENT_DIR=$TOOLCHAIN/$LIBEVENT_ARCHIVE
-LIBEVENT_VERSION=libevent_pthreads-2.0.so.5.1.9
+DMD_BIN_DIR_PATH = "#{CACHE_DIR}/dmd2/linux/bin64"
+if !File.exist?("#{DMD_BIN_DIR_PATH}/dmd")
+  DMD_ARCHIVE_PATH = ensure_archive(CONFIG_DICT['DMD_ARCHIVE_URL'])
+  extract_archive(DMD_ARCHIVE_PATH)
+end
 
-if [ ! -f $PREFIX/lib/$LIBEVENT_VERSION ]; then
-    echo
-    echo "-----> Building libevent"
-    cd $ARCHIVES
-    if [ ! -f $LIBEVENT_ARCHIVE.tar.gz ]; then
-        rm -f libevent-*.tar.gz
-        curl -L --retry 3 "$LIBEVENT_ARCHIVE_PATH/$LIBEVENT_ARCHIVE.tar.gz" -o $LIBEVENT_ARCHIVE.tar.gz
-    fi
+DUB_BIN_PATH = "#{CACHE_DIR}/dub"
+if !File.exist?(DUB_BIN_PATH)
+  DUB_ARCHIVE_PATH = ensure_archive(CONFIG_DICT['DUB_ARCHIVE_URL'])
+  extract_archive(DUB_ARCHIVE_PATH)
+end
 
-    mkdir -p $LIBEVENT_DIR
-    cd $LIBEVENT_DIR/..
-    rm -rf $LIBEVENT_DIR
-    tar xzf $ARCHIVES/$LIBEVENT_ARCHIVE.tar.gz
-
-    cd $LIBEVENT_DIR
-    ./configure --prefix=$PREFIX
-    make all install
-fi
-
-
-LIBEV_ARCHIVE_PATH=http://dist.schmorp.de/libev
-LIBEV_ARCHIVE=libev-4.15
-LIBEV_DIR=$TOOLCHAIN/$LIBEV_ARCHIVE
-LIBEV_VERSION=libev.so.4.0.0
-
-if [ ! -f $PREFIX/lib/$LIBEV_VERSION ]; then
-    echo
-    echo "-----> Building libev"
-    cd $ARCHIVES
-    if [ ! -f $LIBEV_ARCHIVE.tar.gz ]; then
-        rm -f libev-*.tar.gz
-        curl -L --retry 3 "$LIBEV_ARCHIVE_PATH/$LIBEV_ARCHIVE.tar.gz" -o $LIBEV_ARCHIVE.tar.gz
-    fi
-
-    mkdir -p $LIBEV_DIR
-    cd $LIBEV_DIR/..
-    rm -rf $LIBEV_DIR
-    tar xzf $ARCHIVES/$LIBEV_ARCHIVE.tar.gz
-
-    cd $LIBEV_DIR
-    ./configure --prefix=$PREFIX
-    make all install
-fi
-
-cp -R $CACHE_PREFIX $BUILD_DIR/opt
-
-
-DMD_ARCHIVE_PATH=http://downloads.dlang.org/releases/2014
-DMD_ARCHIVE=dmd.2.065.0
-DUB_ARCHIVE_PATH=http://code.dlang.org/files
-DUB_ARCHIVE=dub-0.9.21-linux-x86_64
-
-# download and unpack binary releases
-cd $ARCHIVE_DIR
-if [ ! -f $ARCHIVE_DIR/$DMD_ARCHIVE.zip ]; then
-    echo
-    echo "-----> Downloading DMD"
-    rm -f dmd*.zip
-    curl $DMD_ARCHIVE_PATH/$DMD_ARCHIVE.zip -o $DMD_ARCHIVE.zip | indent
-fi
-if [ ! -f $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz ]; then
-    echo
-    echo "-----> Downloading dub package manager"
-    rm -f dub*.tar.gz
-    curl $DUB_ARCHIVE_PATH/$DUB_ARCHIVE.tar.gz -o $DUB_ARCHIVE.tar.gz  | indent
-fi
-
-export PATH=$TOOL_DIR/dmd2/linux/bin64:$TOOL_DIR/$DUB_ARCHIVE/bin:$BUILDPACK_DIR:$PATH
-echo
-echo "-----> Setting PATH: $PATH"
-echo
-echo "-----> Initializing toolchain"
-cd $TOOL_DIR
-
-7za x $ARCHIVE_DIR/$DMD_ARCHIVE.zip > /dev/null
-mkdir -p $TOOL_DIR/$DUB_ARCHIVE/bin
-cd $TOOL_DIR/$DUB_ARCHIVE/bin
-tar xzf $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz
-
-
-echo
-echo "-----> Building app"
-
-# link the dub cache to the cache folder
-mkdir -p $CACHE_DIR/.dub
-
-if [ ! -e $BUILD_DIR/.dub ]; then
-    ln -s $CACHE_DIR/.dub $BUILD_DIR/.dub
-fi
-
-# check dub.json
-if [ ! -s $BUILD_DIR/dub.json ]; then
-    echo
-    echo "!!! dub.json was empty" | indent
-    exit 1
-fi
-
-# run dub build
-cd $BUILD_DIR
-echo
-echo "Running dub build" | indent
-if dub build --build=release; then
-    echo
-    echo "Build was successful" | indent
-    status=0
-else
-    echo
-    echo "!!! Build failed" | indent
-    status=1
-fi
-
-# clean up any remaining sources
-rm -rf "$TOOL_DIR" source src views
-
-exit $status
+puts_caption 'Building app...'
+Dir.chdir(BUILD_DIR) do
+  puts_indent `PATH=$PATH:#{DMD_BIN_DIR_PATH} #{DUB_BIN_PATH} build --build=release`
+  FileUtils.rm_rf(%w(source src views))
+  fail 'Build failed!' unless $?.success?
+end
