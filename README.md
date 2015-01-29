@@ -2,6 +2,12 @@
 
 Based mostly on https://bitbucket.org/mikehouston/heroku-buildpack-d/.
 
+# Note on heroku stacks
+
+- [`master`](https://github.com/skirino/heroku-buildpack-vibe.d/tree/master) and [`cedar-14`](https://github.com/skirino/heroku-buildpack-vibe.d/tree/cedar-14) branches target classical cedar stack and newer cedar-14 stack, respectively.
+  - See [here](https://devcenter.heroku.com/articles/cedar) for details about heroku stacks.
+- You can specify buildpack's branch name by the fragment part of your `BUILDPACK_URL`.
+
 # Example usage
 
 ```
@@ -16,7 +22,7 @@ $ git commit -m "Initial commit"
 ...
 
 # Create a new heroku app
-$ heroku apps:create -s cedar --buildpack https://github.com/skirino/heroku-buildpack-vibe.d.git
+$ heroku apps:create -s cedar --buildpack 'https://github.com/skirino/heroku-buildpack-vibe.d.git#master'
 Creating peaceful-shore-2762... done, region is us
 BUILDPACK_URL=https://github.com/skirino/heroku-buildpack-vibe.d.git
 http://peaceful-shore-2762.herokuapp.com/ | git@heroku.com:peaceful-shore-2762.git
