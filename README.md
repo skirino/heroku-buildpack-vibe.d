@@ -6,7 +6,7 @@ Based mostly on https://bitbucket.org/mikehouston/heroku-buildpack-d/.
 
 - [`master`](https://github.com/skirino/heroku-buildpack-vibe.d/tree/master) and [`cedar-14`](https://github.com/skirino/heroku-buildpack-vibe.d/tree/cedar-14) branches target classical cedar stack and newer cedar-14 stack, respectively.
   - See [here](https://devcenter.heroku.com/articles/cedar) for details about heroku stacks.
-- You can specify buildpack's branch name by the fragment part of your `BUILDPACK_URL`.
+- You can specify buildpack's branch name by the fragment part of your `BUILDPACK_URL`, e.g. `https://github.com/skirino/heroku-buildpack-vibe.d.git#cedar-14`.
 
 # Example usage
 
