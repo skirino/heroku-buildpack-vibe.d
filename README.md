@@ -111,7 +111,7 @@ $ curl http://peaceful-shore-2762.herokuapp.com/
   - `web: ./vibed-heroku-example`
 - Listen to the port given by Heroku as an environment variable:
   - `settings.port = environment.get("PORT", "8080").to!ushort;`
-- Create `vibed_buildpack.confg` file to specify dmd and dub versions.
+- Create your own `vibed_buildpack.config` file to specify dmd and dub versions.
   - If not given, defaults to [config file inside the buildpack](https://github.com/skirino/heroku-buildpack-vibe.d/blob/cedar-14/vibed_buildpack.config).
 
 # Acknowledgment
