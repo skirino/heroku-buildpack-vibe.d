@@ -42,12 +42,13 @@ def ensure_archive(url)
   path
 end
 
-def extract_archive(path)
+def extract_archive(path, dest_dir)
   puts_caption "Extracting #{path}..."
   if path.end_with?('.zip')
-    puts_indent `unzip -o -d #{CACHE_DIR} #{path}`
+    puts_indent `unzip -d #{dest_dir} #{path}`
   elsif path.end_with?('.tar.gz') || path.end_with?('.tgz')
-    puts_indent `tar -xzf #{path} --directory=#{CACHE_DIR}`
+    FileUtils.mkdir_p dest_dir
+    puts_indent `tar -xzf #{path} --directory=#{dest_dir}`
   else
     fail 'Unexpected archive format!'
   end
@@ -57,25 +58,24 @@ end
 #
 # Start
 #
-CONFIG_DICT = read_config_file(BUILDPACK_DIR).merge read_config_file(BUILD_DIR)
+config_dict = read_config_file(BUILDPACK_DIR).merge read_config_file(BUILD_DIR)
 puts_caption 'Config:'
-CONFIG_DICT.each { |k, v| puts_indent "#{k}=#{v}" }
+config_dict.each { |k, v| puts_indent "#{k}=#{v}" }
 
-DMD_BIN_DIR_PATH = "#{CACHE_DIR}/dmd2/linux/bin64"
-if !File.exist?("#{DMD_BIN_DIR_PATH}/dmd")
-  DMD_ARCHIVE_PATH = ensure_archive(CONFIG_DICT['DMD_ARCHIVE_URL'])
-  extract_archive(DMD_ARCHIVE_PATH)
-end
+dmd_url, dub_url = config_dict.values_at 'DMD_ARCHIVE_URL', 'DUB_ARCHIVE_URL'
+dmd_dir, dub_dir = [dmd_url, dub_url]
+  .map { |url| File.basename(url).sub(/\.zip|\.tar\.gz|\.tgz$/, '') }
+  .map { |basename| File.join(CACHE_DIR, basename) }
 
-DUB_BIN_PATH = "#{CACHE_DIR}/dub"
-if !File.exist?(DUB_BIN_PATH)
-  DUB_ARCHIVE_PATH = ensure_archive(CONFIG_DICT['DUB_ARCHIVE_URL'])
-  extract_archive(DUB_ARCHIVE_PATH)
+[[dmd_url, dmd_dir], [dub_url, dub_dir]].each do |url, dir|
+  if !Dir.exist?(dir)
+    extract_archive(ensure_archive(url), dir)
+  end
 end
 
 puts_caption 'Building app...'
 Dir.chdir(BUILD_DIR) do
-  puts_indent `PATH=$PATH:#{DMD_BIN_DIR_PATH} #{DUB_BIN_PATH} build --build=release`
+  puts_indent `PATH=$PATH:#{dmd_dir}/dmd2/linux/bin64 #{dub_dir}/dub build --build=release`
   FileUtils.rm_rf(%w(source src views))
   fail 'Build failed!' unless $?.success?
 end
