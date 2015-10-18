@@ -25,8 +25,10 @@ indent() {
 }
 
 
-LIBEVENT_ARCHIVE_PATH=https://github.com/downloads/libevent/libevent
-LIBEVENT_ARCHIVE=libevent-2.0.21-stable
+LIBEVENT_ARCHIVE_PATH=https://github.com/libevent/libevent/releases/download
+LIBEVENT_VERSION=2.0.22
+LIBEVENT_RELEASE_TAG="release-$LIBEVENT_VERSION-stable"
+LIBEVENT_ARCHIVE="libevent-$LIBEVENT_VERSION-stable"
 LIBEVENT_DIR=$TOOLCHAIN/$LIBEVENT_ARCHIVE
 LIBEVENT_VERSION=libevent_pthreads-2.0.so.5.1.9
 
@@ -36,7 +38,7 @@ if [ ! -f $PREFIX/lib/$LIBEVENT_VERSION ]; then
     cd $ARCHIVES
     if [ ! -f $LIBEVENT_ARCHIVE.tar.gz ]; then
         rm -f libevent-*.tar.gz
-        curl -L --retry 3 "$LIBEVENT_ARCHIVE_PATH/$LIBEVENT_ARCHIVE.tar.gz" -o $LIBEVENT_ARCHIVE.tar.gz
+        curl -L --retry 3 "$LIBEVENT_ARCHIVE_PATH/$LIBEVENT_RELEASE_TAG/$LIBEVENT_ARCHIVE.tar.gz" -o $LIBEVENT_ARCHIVE.tar.gz
     fi
 
     mkdir -p $LIBEVENT_DIR
