@@ -25,8 +25,10 @@ indent() {
 }
 
 
-LIBEVENT_ARCHIVE_PATH=https://github.com/downloads/libevent/libevent
-LIBEVENT_ARCHIVE=libevent-2.0.21-stable
+LIBEVENT_ARCHIVE_PATH=https://github.com/libevent/libevent/releases/download
+LIBEVENT_VERSION=2.0.22
+LIBEVENT_RELEASE_TAG="release-$LIBEVENT_VERSION-stable"
+LIBEVENT_ARCHIVE="libevent-$LIBEVENT_VERSION-stable"
 LIBEVENT_DIR=$TOOLCHAIN/$LIBEVENT_ARCHIVE
 LIBEVENT_VERSION=libevent_pthreads-2.0.so.5.1.9
 
@@ -36,7 +38,7 @@ if [ ! -f $PREFIX/lib/$LIBEVENT_VERSION ]; then
     cd $ARCHIVES
     if [ ! -f $LIBEVENT_ARCHIVE.tar.gz ]; then
         rm -f libevent-*.tar.gz
-        curl -L --retry 3 "$LIBEVENT_ARCHIVE_PATH/$LIBEVENT_ARCHIVE.tar.gz" -o $LIBEVENT_ARCHIVE.tar.gz
+        curl -L --retry 3 "$LIBEVENT_ARCHIVE_PATH/$LIBEVENT_RELEASE_TAG/$LIBEVENT_ARCHIVE.tar.gz" -o $LIBEVENT_ARCHIVE.tar.gz
     fi
 
     mkdir -p $LIBEVENT_DIR
@@ -51,7 +53,7 @@ fi
 
 
 LIBEV_ARCHIVE_PATH=http://dist.schmorp.de/libev
-LIBEV_ARCHIVE=libev-4.15
+LIBEV_ARCHIVE=libev-4.20
 LIBEV_DIR=$TOOLCHAIN/$LIBEV_ARCHIVE
 LIBEV_VERSION=libev.so.4.0.0
 
@@ -77,10 +79,10 @@ fi
 cp -R $CACHE_PREFIX $BUILD_DIR/opt
 
 
-DMD_ARCHIVE_PATH=http://downloads.dlang.org/releases/2014
-DMD_ARCHIVE=dmd.2.065.0
+DMD_ARCHIVE_PATH=http://downloads.dlang.org/releases/2015
+DMD_ARCHIVE=dmd.2.068.2
 DUB_ARCHIVE_PATH=http://code.dlang.org/files
-DUB_ARCHIVE=dub-0.9.21-linux-x86_64
+DUB_ARCHIVE=dub-0.9.24-linux-x86_64
 
 # download and unpack binary releases
 cd $ARCHIVE_DIR
