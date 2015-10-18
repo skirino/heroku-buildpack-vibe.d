@@ -53,7 +53,7 @@ fi
 
 
 LIBEV_ARCHIVE_PATH=http://dist.schmorp.de/libev
-LIBEV_ARCHIVE=libev-4.15
+LIBEV_ARCHIVE=libev-4.20
 LIBEV_DIR=$TOOLCHAIN/$LIBEV_ARCHIVE
 LIBEV_VERSION=libev.so.4.0.0
 
